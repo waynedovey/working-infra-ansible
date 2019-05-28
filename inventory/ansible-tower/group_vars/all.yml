@@ -1,0 +1,69 @@
+---
+ansible_tower:
+  url: "https://{{ hostvars[groups['ansible-tower'] | first].ansible_host }}"
+  admin_user: 'admin'
+  admin_password: 'r3dh4t1!'
+  organization: 'Default'
+  install:
+  ldap:
+  credential-types:
+  credentials:
+  - name: "Cred1"
+    description: "My Credential 1"
+    organization: "Default"
+    credential_type: "Machine"
+  - name: "Cred2"
+    description: "My Credential 2"
+    organization: "Default"
+    credential_type: "Machine"
+  inventories:
+  - name: "Inventory1"
+    description: "My Hosts"
+    organization: "Default"
+    variables: "---"
+    hosts:
+    - name: "localhost"
+      description: ""
+      variables: "---\\nansible_connection: local"
+    groups:
+    - name: "seed_hosts"
+      variables: "---\\nfoo: bar\\n"
+      hosts:
+      - name: "localhost"
+    sources:
+    - name: "source1"
+      description: "Source 1"
+      credential: "Cred1"
+      source: "scm"
+      source_project: "Project1"
+      source_path: "scripts/script1.py"
+      source_vars: "---\nFIRST: John\nLAST: Doe"
+  projects:
+  - name: "Project1"
+    description: "My Project"
+    scm_type: "git"
+    scm_url: "https://github.com/redhat-cop/infra-ansible.git"
+    scm_branch: "master"
+    organization: "Default"
+  job_templates:
+  - name: "Job1"
+    description: "My Job 1"
+    inventory: "Inventory1"
+    project: "Project1"
+    playbook: "playbooks/prep.yml"
+    credential: "Cred1"
+    extra_vars: "---\\nhello: world\\n"
+    ask_variables_on_launch: true
+    permissions:
+      teams:
+      - name: team1
+        role: Execute
+      users:
+      - name: user1
+        role: Execute
+  workflow_templates:
+  - name: "Workflow 1"
+    description: "My Workflow 1"
+    nodes:
+      - unified_job_template:
+          name: "Job1"
